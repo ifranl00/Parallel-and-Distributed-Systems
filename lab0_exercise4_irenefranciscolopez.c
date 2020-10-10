@@ -11,7 +11,7 @@ int main() {
 	 {
 	 	printf("Insert the value of a\n");
 	 	scanf("%lf",&a);
-	 	}while(a>0);
+	 	}while(a<=0);
 	result = (double) 3*a;
 	printf("The result of 3*a is %f:\n", result);
 		
