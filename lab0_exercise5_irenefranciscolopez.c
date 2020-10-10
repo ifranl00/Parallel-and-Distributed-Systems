@@ -12,7 +12,7 @@ int main() {
 		printf("Insert the value of a\n");
 	 	scanf("%lf",&a);
 	 	
-	 	if(a<=0) {
+	 	if(a>0) {
 	 		break;
 	 	}
 	}
