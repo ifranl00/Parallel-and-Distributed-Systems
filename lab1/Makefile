@@ -19,10 +19,10 @@ myprogram: myprogram.o tmeas.o
 
 # how to obtain a file myprogram.o
 myprogram.o: 
-	$(CCOMP) -c $(OPT) myprogram.c
+	$(CCOMP) -c $(OPT) myprogram.c $(INC)
 
-tmeas.o: tmeas.c tmeas.h
-	$(CCOMP) -c $(OPT) tmeas.c
+tmeas.o: tmeas.c
+	$(CCOMP) -c $(OPT) tmeas.c $(INC)
 
 clean:
 	rm -f *.o
