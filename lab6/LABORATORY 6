@@ -1,0 +1,14 @@
+LABORATORY 6
+
+Irene Francisco López
+
+Exercise 2: 
+
+	In order to compile the program I used: "mpicc examplempi.c -o examplempi"
+	and for executing it: "mpirun -np 7 --display-map ./empi".
+
+	Then, it is possible to see the job map of 7 process to see information about them, for example, its rank. Also, with the print function we can know details about the transmitted data where the process ranked 0 is sending the rank to the rest of process which are receiving this data.
+
+
+	
+
