@@ -19,6 +19,9 @@ int main(int argc, char **argv)
 
 			printf("Please enter a number!\n");
 			scanf("%d",&n);
+			if(n<=0) {
+				return(-1);
+			}
 		 	printf("Process %d got a %d\n",rank,n);
 
 		}else {
@@ -33,7 +36,7 @@ int main(int argc, char **argv)
 		if(rank==0) {
 		
 			MPI_Recv(&n,1,MPI_INT,size-1,0,MPI_COMM_WORLD,&status); // Blocking receive for a message -> int MPI_Recv(void *received_data, int receive_count, MPI_Datatype receive_type,int sender_ID, int tag, MPI_Comm comm, MPI_Status *status);
-			printf("Process %d got %d from process %d\n",rank,n,rank-1);
+			printf("Process %d got %d from process %d\n",rank,n,size-1);
 		}
 
 	}while(n>=0);
