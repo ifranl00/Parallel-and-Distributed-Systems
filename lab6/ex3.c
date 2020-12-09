@@ -19,8 +19,9 @@ int main(int argc, char **argv)
 
 			printf("Please enter a number!\n");
 			scanf("%d",&n);
-			if(n<=0) {
-				return(-1);
+			if(n<0) {
+				printf("Program finished because you entered a negative number.\n");
+				MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 			}
 		 	printf("Process %d got a %d\n",rank,n);
 
