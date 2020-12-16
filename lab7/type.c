@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 	//MPI_Barrier(MPI_COMM_WORLD);
 	double tf = MPI_Wtime();
 	MPI_Finalize();
-	printf("Time of sendind data of proccess %d: %f\n",rank,tf-t0);
+	printf("Time of execution of proccess %d: %f\n",rank,tf-t0);
 	return 0;
 }
 
