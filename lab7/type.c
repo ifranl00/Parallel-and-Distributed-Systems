@@ -64,12 +64,11 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		printf("LOL\n");
 		strcpy(tabrecord.name, "John");
 		tabrecord.age = 51;
-		strcpy(tabrecieved.city,"Lion");
-		tabrecieved.average = 9.8;
-		tabrecieved.favNum = 5;
+		strcpy(tabrecord.city,"Lion");
+		tabrecord.average = 9.8;
+		tabrecord.favNum = 5;
 		for (r=1; r<size; r++)
 			MPI_Send(&tabrecord, 1, new_type, r, 0, MPI_COMM_WORLD);
 	}
