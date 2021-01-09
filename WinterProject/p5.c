@@ -21,7 +21,11 @@ int main()
 	float sum;
 	float *b;
 	float *x; // vector to save bn values
-	numThreads = 5;
+
+	// Ask the number of intervals
+	printf("Please enter n!\n");
+	scanf("%d",&numThreads); 
+
 	float aMatrix[numThreads][numThreads]; // matrix of a elements
 	
 	b = malloc(sizeof(float)*numThreads); 
