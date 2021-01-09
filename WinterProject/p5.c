@@ -30,7 +30,7 @@ int main()
 	
 	b = malloc(sizeof(float)*numThreads); 
 	x = malloc(sizeof(float)*numThreads); 
-	omp_set_num_threads(4); //the number of threads is deteermined to 4 (0,1,2,3)
+	omp_set_num_threads(numThreads); //the number of threads is deteermined to 4 (0,1,2,3)
 
 	srand(time(NULL)); // seed 
 /* With schedule clause we can specify which iterations are going to be executed by each thread*/
