@@ -27,13 +27,15 @@ typedef struct {
 
 int isArrayFull(int array[], int n);
 void initializeToXInt(int array[],int n,int value);
+void initializeToI(int array[],int n);
 void initializeToXChar(char array[],int n,char value);
+void getRandomRequests(int array[], int n);
 
 int main(int argc, char **argv) 
 { 
 	char name[20];
-	int len,rank,size,elevatorFloor,i,j;
-	char buffer[110];
+	int len,rank,size,elevatorFloor,i,j,numPassengers;
+	char buffer[1000];
     int position = 0;
 	len=20;
 	i = 0;
@@ -45,7 +47,6 @@ int main(int argc, char **argv)
 	MPI_Aint base, addr;
 	Data tabrecord,tabrecieved;
 
-
 	MPI_Init(&argc,&argv); //iniatialize MPI execution environment
 	MPI_Status status; 
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank); //determines the rank of the calling process in the communicator
@@ -53,9 +54,12 @@ int main(int argc, char **argv)
 	MPI_Get_processor_name(name,&len); //gets the name of the processor
 
 
-		int passenger = -1; //passenger using the lift
-		int offPassengers[size]; // array where the passenguers will saved when they are not longuer using the lift
-	// Each passenguer is in a random initial floor before taking the lift
+		int passenger = -1; //passenger who called first
+		int currentPassenger = -1; // passenguer usin the lift
+		int offPassengers[size-1]; // array where the passenguers will saved when they are not longuer using the lift
+		int randomRequest[size-1]; // every time the lift is idle the first passenguer to ask for it is saved 
+		numPassengers = size -1; // all the threads except the lift who is thread 0
+	// Each passenguer and the lift is in a random initial floor before taking the lift
 		int initFloor[size];
 
 			MPI_Get_address(&tabrecord, &base);
@@ -71,16 +75,41 @@ int main(int argc, char **argv)
 
 		srand (time(NULL) + rank); //diferent seed for each process
 		initFloor[rank] = (rand() % (size + 1)); //floors between the number of process and 0
-		printf("Passenger %d INITIAL FLOOR -> %d.\n",rank,initFloor[rank]);
+
+		if(rank == 0) {
+
+			printf("Lift (process %d) INITIAL FLOOR -> %d.\n",rank,initFloor[rank]);
+
+		}else{
+			printf("Passenger %d INITIAL FLOOR -> %d.\n",rank,initFloor[rank]);
+
+		}
 		MPI_Barrier(MPI_COMM_WORLD); //Blocks until all processes in the communicator have reached this routine. 
 
-	// Each passenguer will have a random destination floor
-		int destFloor[size];
-		initializeToXInt(offPassengers,size,-1);
-		initializeToXChar(buffer,110,' ');
+	
+		int destFloor[size-1];// Each passenguer will have a random destination floor
+
+		if(rank == 0) {
+
+			initializeToXInt(offPassengers,size-1,-1);
+			initializeToXChar(buffer,110,' ');
+			initializeToI(randomRequest,size-1);
+
+			getRandomRequests(randomRequest,size-1);
+			for (int i = 0; i < size-1; ++i)
+			{
+				printf("Request %d passenger %d\n",i+1,randomRequest[i]);
+			}
+
+		}
+		
 		srand (time(NULL) + rank + 1); //diferent seed for each process
-		destFloor[rank] = (rand() % (size + 1)); //floors between the number of process and 0
-		printf("Passenger %d DESTINATION FLOOR -> %d.\n",rank,destFloor[rank]);
+		if(rank != 0){ // the lift wont have a random destination floor
+			destFloor[rank-1] = (rand() % (10 + 1)); //floors between 10 and 0
+			printf("Passenger %d DESTINATION FLOOR -> %d.\n",rank,destFloor[rank-1]);
+		}
+		
+		// initialization of tabrecord
 		tabrecord.elevatorFloor = 0;
 		tabrecord.elevatorFree = 0;
 		tabrecord.passenger = -1;
@@ -94,48 +123,51 @@ int main(int argc, char **argv)
     MPI_UNPACK(inbuf, insize, position, outbuf, outcount, datatype, comm)
 */
 
+		
+		while(isArrayFull(offPassengers,size-1) == 1 && offPassengers[rank-1] == -1 ) { //while there is passenguers that want to use the lift
 
-		while(isArrayFull(offPassengers,size) == 1 && offPassengers[rank] == -1) { //while there is passenguers that want to use the lift
-
-			printf("In process %d entre al while\n",rank);
 			// 1. Who is going to use the lift? The fist to call for it if it is idle
-			if(passenger == -1) { // if the lift is idle
-				passenger = rank; // we save the passenguer who asked first
-			}
+			if(rank == 0){ // the lift
 
-
-			if(rank != 0 ){ // only executed by the passenguer who asked first for the lift
-				printf("HEYYYYY\n");
-				tabrecieved.elevatorFloor = 7;
-				tabrecieved.elevatorFree = 1;
-				tabrecieved.passenger = rank;
-		        printf("In process %d the floor is %d, lift state is %d, passenguer is %d \n",rank,tabrecieved.elevatorFloor,tabrecieved.elevatorFree,tabrecieved.passenger); 
-
-		        MPI_Recv(buffer, 110, MPI_PACKED, 0, 110, MPI_COMM_WORLD, &status);
-		        MPI_Unpack(buffer, 110, &position, &tabrecieved, 1, new_type, MPI_COMM_WORLD);
-
-		        printf("In process %d I have received all the struct:\n",rank);
-		        printf("\t - name: %d\n",tabrecieved.elevatorFloor);
-		        printf("\t - age: %d\n",tabrecieved.elevatorFree);
-		        printf("\t - city: %d\n",tabrecieved.passenger );
-			}else {
-				
-
-				printf(" I am the passenguer %d in floor %d and I am using the lift to go to %d floor\n", rank, initFloor[rank],destFloor[rank]);
-
-				tabrecord.elevatorFloor = rank;
-				tabrecord.elevatorFree = rank;
-				tabrecord.passenger = rank;
 				initializeToXChar(buffer,110,' '); // reset the buffer
-				MPI_Pack(&tabrecord, 1, new_type, buffer, 110, &position, MPI_COMM_WORLD);
-        		MPI_Send(buffer, position, MPI_PACKED, 1, 110, MPI_COMM_WORLD);
-        		sleep((destFloor[rank]-initFloor[rank])*2); //time using the lift 2 sec per floor
-        		offPassengers[rank] = rank; // the passenguer is not longuer using the lift
+
+				// Which passanguer I have to pick up?
+				passenger = randomRequest[i];
+				i = i +1;
+				printf(" I am the lift (process %d) in floor %d and passenguer %d is going to be picked up\n", rank, initFloor[rank],passenger);
+				//printf("Destination floor of passenguer %d: %d", passenger,destFloor[passenger]);
+				tabrecord.elevatorFloor = destFloor[passenger-1];
+				tabrecord.elevatorFree = rank;
+				tabrecord.passenger = passenger;
+				
+				MPI_Pack(&tabrecord, 1, new_type, buffer, 1000, &position, MPI_COMM_WORLD);
+
+
+				for (int i = 0; i < size-1; i++)
+				{
+					if(offPassengers[i] != -1) { // a passenguer has already ysed the lift
+						numPassengers = numPassengers - 1; // is not going to use the lift again per execution
+					}
+				}
+				for(i=1;i<numPassengers;i++) {
+					MPI_Send(&buffer,0,MPI_PACKED,i,1000,MPI_COMM_WORLD); //performs a blocking send
+
+				}
+        		sleep((destFloor[passenger-1]-initFloor[rank])*2); //time using the lift 2 sec per floor
+        		offPassengers[passenger-1] = passenger; // the passenguer is not longuer using the lift
+				printf(" I am the lift (process %d) in floor %d and passenguer %d has reached floor %d\n", rank, initFloor[rank],passenger,destFloor[passenger-1]);
 				passenger == -1;
-		    	printf("In process %d the lift is idle!\n",rank);
-
-			}
-
+			}else {
+				MPI_Recv(buffer,1000,MPI_PACKED,0,1000,MPI_COMM_WORLD,&status); // Blocking receive for a message
+ 				MPI_Unpack(buffer, 1000, &position, &tabrecieved, 1, new_type, MPI_COMM_WORLD);
+				
+				if(rank != tabrecieved.passenger) {
+					printf("Passenger %d is waiting for the lift:\n",rank);
+		        	printf("\t - Elevantor floor: %d\n",tabrecieved.elevatorFloor);
+		        	printf("\t - Free: %d\n",tabrecieved.elevatorFree);
+		        	printf("\t - Passenger using the floor: %d\n",tabrecieved.passenger );			}
+				}
+				
 		}
 
 		MPI_Finalize(); //Terminates MPI execution environment
@@ -171,6 +203,15 @@ void initializeToXInt(int array[],int n,int value){
 	}
 }
 
+/* Initialize the int array received to ordered values */
+
+void initializeToI(int array[],int n){
+
+	for (int i = 0; i < n; i++)
+	{
+		array[i] = i+1;
+	}
+}
 /* Initialize the char array received to the value received */
 
 void initializeToXChar(char array[],int n,char value){
@@ -179,4 +220,21 @@ void initializeToXChar(char array[],int n,char value){
 	{
 		array[i] = value;
 	}
+}
+
+/* returns random generated vector shuffled */
+void getRandomRequests(int array[], int n)
+{
+	int i,j,t;
+    if (n > 1) 
+    {
+        srand(time(NULL));
+        for (i = 0; i < n - 1; i++) 
+        {
+         j = i + rand() / ( RAND_MAX/ (n - i) + 1);
+          t = array[j];
+          array[j] = array[i];
+          array[i] = t;
+        }
+    }
 }
