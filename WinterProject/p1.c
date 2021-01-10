@@ -41,6 +41,7 @@ int main(int argc, char **argv)
 	MPI_Aint base, addr;
 	Data tabrecord;
 
+printf("size: %d\n",size);
 
 	MPI_Init(&argc,&argv); //iniatialize MPI execution environment
 	MPI_Status status; 
@@ -77,14 +78,15 @@ int main(int argc, char **argv)
 		tabrecord.elevatorFloor = 0;
 		tabrecord.elevatorFree = 0;
 		tabrecord.passenger = -1;
-		requests[20] = {0};
+		tabrecord.requests[20] = "0";
+
 
 		MPI_Barrier(MPI_COMM_WORLD); //Blocks until all processes in the communicator have reached this routine. 
 
 	// The elevator is avalable to use and there are requests for it
 
-		MPI_Pack(&rank,1,MPI_INT,temp,50, 0, MPI_COMM_WORLD);
-		MPI_Send(temp,0,MPI_PACKED,1,50,MPI_COMM_WORLD);
+		//MPI_Pack(&rank,1,MPI_INT,temp,50, 0, MPI_COMM_WORLD);
+		//MPI_Send(temp,0,MPI_PACKED,1,50,MPI_COMM_WORLD);
 
 		MPI_Finalize(); //Terminates MPI execution environment
 	
